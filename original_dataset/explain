@@ -1,0 +1,8 @@
+# dataset list
+- dangjin_fcst_data
+- dangjin_obs_data
+- energy
+- sample_submission
+- site_info
+- ulsan_fcst_data
+- ulsan_obs_data
