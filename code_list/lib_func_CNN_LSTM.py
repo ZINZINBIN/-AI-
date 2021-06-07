@@ -204,8 +204,8 @@ def build_CNN_LSTM(input_shape, params = sample_params):
                 filters = filter,
                 kernel_size = kernel,
                 strides = stride,
-                padding = "valid",
-                kernel_initializer = "glorot_uniform",
+                padding = "same",
+                kernel_initializer = "he_uniform",
                 activation = "relu",
                 kernel_regularizer= tf.keras.regularizers.l2(l2_lambda)
                 )

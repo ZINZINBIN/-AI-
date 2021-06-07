@@ -27,9 +27,9 @@ import lightgbm as lgb
 # ======================================================================== #
 
 # load data
-with open('./witt_preprocessing/pickles/dangjin_data.pkl','rb') as f:
+with open('./data/dangjin_data.pkl','rb') as f:
     dangjin_data = pickle.load(f)
-with open('./witt_preprocessing/pickles/ulsan_data.pkl','rb') as f:
+with open('./data/ulsan_data.pkl','rb') as f:
     ulsan_data = pickle.load(f)
 
 # energy = 0 drop
@@ -54,9 +54,10 @@ params = {
     "objective":"regression",
     "n_estimators":1000,
     "subsample_for_bin":200000,
-    "min_split_gain":0.3,
+    "min_split_gain":0.5,
     "min_child_weight":1e-3,
     "min_child_samples":20,
+    "min_data_in_leaf":20,
     "subsample":1.0,
     "subsample_freq":0,
     "colsample_bytree":1.0,
@@ -71,7 +72,7 @@ params = {
 x_name = ["Day_cos","Day_sin","Year_cos","Year_sin","Temperature", "Humidity", "Wind_X", "Wind_Y", "Cloud"]
 y_name = ["ulsan"]
 ulsan_model = build_lgb(params)
-x_train, x_val, y_train, y_val = data_generate_lgb(ulsan_data.iloc[0:-24*30], x_name, y_name, test_size = 0.2)
+x_train, x_val, y_train, y_val = data_generate_lgb(ulsan_data.iloc[0:-24*30], x_name, y_name, test_size = 0.3)
 
 from sklearn.preprocessing import MinMaxScaler
 
@@ -91,7 +92,7 @@ y_name = ["dangjin_floating"]
 dangjin_floating_model = build_lgb(params)
 dangjin_data = dangjin_data.dropna()
 
-x_train, x_val, y_train, y_val = data_generate_lgb(dangjin_data.iloc[0:-24*30], x_name, y_name, test_size = 0.2)
+x_train, x_val, y_train, y_val = data_generate_lgb(dangjin_data.iloc[0:-24*30], x_name, y_name, test_size = 0.3)
 custom_eval_dangjin_floating = lambda x,y : custom_evaluation(x, y, cap = "dangjin_floating")
 
 y_train = np.squeeze(y_train)
@@ -106,7 +107,7 @@ dangjin_floating_model = lgb.train(params, lgb_train, num_boost_round = nbr, val
 x_name = ["Day_cos","Day_sin","Year_cos","Year_sin","Temperature", "Humidity", "Wind_X", "Wind_Y", "Cloud"]
 y_name = ["dangjin_warehouse"]
 dangjin_warehouse_model = build_lgb(params)
-x_train, x_val, y_train, y_val = data_generate_lgb(dangjin_data.iloc[0:-24*30], x_name, y_name, test_size = 0.2)
+x_train, x_val, y_train, y_val = data_generate_lgb(dangjin_data.iloc[0:-24*30], x_name, y_name, test_size = 0.3)
 custom_eval_dangjin_warehouse = lambda x,y : custom_evaluation(x, y, cap = "dangjin_warehouse")
 
 y_train = np.squeeze(y_train)
@@ -123,7 +124,7 @@ dangjin_warehouse_model = lgb.train(params, lgb_train, num_boost_round = nbr, va
 x_name = ["Day_cos","Day_sin","Year_cos","Year_sin","Temperature", "Humidity", "Wind_X", "Wind_Y", "Cloud"]
 y_name = ["dangjin"]
 dangjin_model = build_lgb(params)
-x_train, x_val, y_train, y_val = data_generate_lgb(dangjin_data.iloc[0:-24*30], x_name, y_name, test_size = 0.2)
+x_train, x_val, y_train, y_val = data_generate_lgb(dangjin_data.iloc[0:-24*30], x_name, y_name, test_size = 0.3)
 custom_eval_dangjin = lambda x,y : custom_evaluation(x, y, cap = "dangjin")
 
 y_train = np.squeeze(y_train)
@@ -245,12 +246,14 @@ print("nmae for dangjin: ", dangjin_nmae)
 
 
 # submission 
-submission_path = "./submission.csv"
+submission_path = "./sample_submission.csv"
+#submission_path = "./test_sample_submission_lgb.csv"
+
 submission = pd.read_csv(submission_path)
 
 
-ulsan_obs_feb_path = "./original_dataset/external_data/ulsan_obs_2021-02.csv" 
-dangjin_obs_feb_path = "./original_dataset/external_data/dangjin_obs_2021-02.csv"
+ulsan_obs_feb_path = "./data/ulsan_obs_2021-02.csv" 
+dangjin_obs_feb_path = "./data/dangjin_obs_2021-02.csv"
 
 ulsan_obs_feb = pd.read_csv(ulsan_obs_feb_path, encoding = "CP949" ) 
 dangjin_obs_feb = pd.read_csv(dangjin_obs_feb_path, encoding = "CP949")
@@ -289,5 +292,14 @@ yhat = submission_predict_lgb(dangjin_model, n_predict = 24 * 27 - 1, fcst_data 
 submission.iloc[0:24*27 -1,3] = yhat
 
 submission.to_csv("submission_lgb.csv", index = False)
+#submission.to_csv("test_sample_submission_lgb.csv", index = False)
 
 print("expected evaluation nmae:", 0.25*(ulsan_nmae + dangjin_floating_nmae + dangjin_warehouse_nmae + dangjin_nmae))
+
+# model save
+
+import joblib
+joblib.dump(ulsan_model, "ulsan_lgbm.pkl")
+joblib.dump(dangjin_floating_model, "dangjin_floating_lgbm.pkl")
+joblib.dump(dangjin_warehouse_model, "dangjin_warehouse_lgbm.pkl")
+joblib.dump(dangjin_model, "dangjin_lgbm.pkl")

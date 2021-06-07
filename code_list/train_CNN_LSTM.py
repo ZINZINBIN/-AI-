@@ -17,10 +17,12 @@ from lib_func_CNN_LSTM import *
 if __name__=="__main__":
 
     # load data from pickle
-    with open('./witt_preprocessing/pickles/dangjin_merged.pkl','rb') as f:
+    with open('./data/dangjin_data.pkl','rb') as f:
         dangjin_data = pickle.load(f)
-    with open('./witt_preprocessing/pickles/ulsan_merged.pkl','rb') as f:
+    with open('./data/ulsan_data.pkl','rb') as f:
         ulsan_data = pickle.load(f)
+        
+    '''
 
     # time as index
     dangjin_data.set_index('time', inplace=True)
@@ -49,6 +51,8 @@ if __name__=="__main__":
         }, inplace = True)
 
 
+    '''
+    
     # common
     input_shape = (1,24,9)
     epochs = 64
@@ -147,15 +151,19 @@ if __name__=="__main__":
     dangjin_model = build_CNN_LSTM(input_shape, dangjin_params)
 
     ulsan_model.fit(x_ulsan, y_ulsan, validation_split = 0.2, epochs = epochs, batch_size = batch_size, callbacks = ulsan_callbacks)
+    ulsan_model.save_weights("./model_weights/ulsan_weights.h5")
     ulsan_model.save("ulsan_model.h5")
 
     dangjin_floating_model.fit(x_dangjin_floating, y_dangjin_floating, validation_split = 0.2, epochs = epochs, batch_size = batch_size, callbacks = dangjin_floating_callbacks)
+    dangjin_floating_model.save_weights("./model_weights/dangjin_floating_weights.h5")
     dangjin_floating_model.save("dangjin_floating_model.h5")
 
     dangjin_warehouse_model.fit(x_dangjin_warehouse, y_dangjin_warehouse, validation_split = 0.2, epochs = epochs, batch_size = batch_size, callbacks = dangjin_warehouse_callbacks)
-    dangjin_warehouse_model.save_("dangjin_warehouse_model.h5")
+    dangjin_warehouse_model.save_weights("./model_weights/dangjin_warehouse_weights.h5")
+    dangjin_warehouse_model.save("dangjin_warehouse_model.h5")
 
     dangjin_model.fit(x_dangjin, y_dangjin, validation_split = 0.2, epochs = epochs, batch_size = batch_size, callbacks = dangjin_callbacks)
+    dangjin_model.save_weights("./model_weights/dangjin_weights.h5")
     dangjin_model.save("dangjin_model.h5")
 
     # model evaluation

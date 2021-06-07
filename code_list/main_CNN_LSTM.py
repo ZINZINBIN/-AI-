@@ -9,9 +9,9 @@ import glob
 from lib_CNN_LSTM import *
 
 # load data from pickle
-with open('./witt_preprocessing/pickles/dangjin_merged.pkl','rb') as f:
+with open('./data/dangjin_data.pkl','rb') as f:
     dangjin_data = pickle.load(f)
-with open('./witt_preprocessing/pickles/ulsan_merged.pkl','rb') as f:
+with open('./data/ulsan_data.pkl','rb') as f:
     ulsan_data = pickle.load(f)
 
 # time as index
@@ -42,11 +42,11 @@ dangjin_warehouse_model.load_weights(dangjin_warehouse_weights_path)
 dangjin_model.load_weights(dangjin_weights_path)
 
 # submission 
-submission_path = "./submission.csv"
+submission_path = "./sample_submission.csv"
 submission = pd.read_csv(submission_path, encoding = "CP949")
 
-ulsan_obs_feb_path = "./original_dataset/external_data/ulsan_obs_2021-02.csv" 
-dangjin_obs_feb_path = "./original_dataset/external_data/dangjin_obs_2021-02.csv"
+ulsan_obs_feb_path = "./data/ulsan_obs_2021-02.csv" 
+dangjin_obs_feb_path = "./data/dangjin_obs_2021-02.csv"
 
 ulsan_obs_feb = pd.read_csv(ulsan_obs_feb_path, encoding = "CP949" ) 
 dangjin_obs_feb = pd.read_csv(dangjin_obs_feb_path, encoding = "CP949")

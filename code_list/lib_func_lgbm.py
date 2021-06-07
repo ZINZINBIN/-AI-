@@ -13,22 +13,23 @@ def build_lgb(params):
     if params is None:
         model = lgb.LGBMRegressor()
     else:
-        boosting_type = params['boosting_type'],
-        num_leaves = params['num_leaves'],
-        max_depth = params['max_depth'],
-        learning_rate = params['learning_rate'],
-        n_estimators = params['n_estimators'],
-        subsample_for_bin = params['subsample_for_bin'],
-        objective = params['objective'],
-        min_split_gain = params['min_split_gain'],
-        min_child_weight = params['min_child_weight'],
-        min_child_samples = params['min_child_samples'],
-        subsample = params['subsample'],
-        subsample_freq = params['subsample_freq'],
-        colsample_bytree = params['colsample_bytree'],
-        reg_alpha = params['reg_alpha'],
-        reg_lambda = params['reg_lambda'],
+        boosting_type = params['boosting_type']
+        num_leaves = params['num_leaves']
+        max_depth = params['max_depth']
+        learning_rate = params['learning_rate']
+        n_estimators = params['n_estimators']
+        subsample_for_bin = params['subsample_for_bin']
+        objective = params['objective']
+        min_split_gain = params['min_split_gain']
+        min_child_weight = params['min_child_weight']
+        min_child_samples = params['min_child_samples']
+        subsample = params['subsample']
+        subsample_freq = params['subsample_freq']
+        colsample_bytree = params['colsample_bytree']
+        reg_alpha = params['reg_alpha']
+        reg_lambda = params['reg_lambda']
         n_jobs = params['n_jobs']
+        min_data_in_leaf = params["min_data_in_leaf"]
         
         model = lgb.LGBMRegressor(
             boosting_type = boosting_type,
@@ -46,7 +47,8 @@ def build_lgb(params):
             colsample_bytree = colsample_bytree,
             reg_alpha = reg_alpha,
             reg_lambda = reg_lambda,
-            n_jobs = n_jobs
+            n_jobs = n_jobs,
+            min_data_in_leaf = min_data_in_leaf
             )
 
     return model
@@ -154,7 +156,8 @@ capacity = {
     'dangjin_floating':1000, # 당진수상태양광 발전용량
     'dangjin_warehouse':700, # 당진자재창고태양광 발전용량
     'dangjin':1000, # 당진태양광 발전용량
-    'ulsan':500 # 울산태양광 발전용량
+    'ulsan':500, # 울산태양광 발전용량
+    'dangjin_sum':2700
 }
 
 '''
@@ -303,3 +306,40 @@ def obs_preprocessing(df):
     df_obs = add_seasonality(df_obs)
         
     return df_obs
+
+
+
+# additional infomation
+    
+# 포화수증기압
+
+def vapor_pressure(df):
+    new_df = df.copy()
+    new_df["Vapor_Pressure"] = new_df["Temperature"].apply(lambda x: 6.11 * np.exp((17.23 * x) / (237.3 + x)))
+    return new_df
+    
+# 포화수증기량
+from scipy.optimize import curve_fit
+
+t = np.array([-10, -5, 0, 5, 10, 15, 20, 25, 30, 40, 50])
+sh = np.array([2.1379, 3.2444, 4.8467, 6.7958, 9.3977, 12.8270, 17.2910, 23.0380, 30.3580, 51.1020, 82.8230])
+
+def curve_func(x,q1,q2,q3,q4):
+    y = q1 * x ** 3 + q2 * x **2 + q3 * x ** 1 + q4
+    return y
+
+popt, pcov = curve_fit(curve_func, t, sh)
+
+def saturate_humidity_curve(x):
+    y = curve_func(x, *popt)
+    return y
+
+def saturate_humidity(df):
+    new_df = df.copy()
+    new_df["Saturate_Humidity"] = new_df["Temperature"].apply(lambda x: saturate_humidity_curve(x))
+    return new_df
+    
+def relative_humidity(df):
+    new_df = df.copy()
+    new_df["Relative_Humidity"] = new_df["Humidity"] / new_df["Saturate_Humidity"]
+    return new_df

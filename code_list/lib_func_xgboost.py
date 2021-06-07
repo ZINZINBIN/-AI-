@@ -111,8 +111,10 @@ capacity = {
     'dangjin_floating':1000, # 당진수상태양광 발전용량
     'dangjin_warehouse':700, # 당진자재창고태양광 발전용량
     'dangjin':1000, # 당진태양광 발전용량
-    'ulsan':500 # 울산태양광 발전용량
+    'ulsan':500, # 울산태양광 발전용량
+    'dangjin_sum':2700
 }
+
 
 def custom_evaluation(preds, dtrain, cap = "ulsan"):
     labels = dtrain.get_label()
